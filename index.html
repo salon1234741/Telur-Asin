@@ -84,7 +84,7 @@
 <div class="flex items-center justify-between px-1">
 <div class="flex items-center space-x-2">
 <div class="w-2 h-2 rounded-sm bg-cyan-400 shadow-[0_0_8px_#22d3ee]"></div>
-<h2 class="text-xs font-bold text-slate-200 tracking-wide uppercase">SLAVE 1 • SENSOR WADAH PERENDAMAN TELUR</h2>
+<h2 class="text-xs font-bold text-slate-200 tracking-wide uppercase">SLAVE 1</h2>
 </div>
 <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-cyan-950/80 text-cyan-300 border border-cyan-800/60" id="badge-s1">Menunggu</span>
 </div>
@@ -111,7 +111,7 @@
 <article class="glass-card p-3 rounded-2xl border border-amber-500/20 relative overflow-hidden group hover:border-amber-500/40 transition-all" data-purpose="brine-temp-card">
 <div class="absolute -right-4 -bottom-4 w-16 h-16 bg-amber-500/10 rounded-full blur-xl pointer-events-none"></div>
 <div class="flex items-center justify-between mb-1.5">
-<span class="text-[10px] font-medium tracking-wide uppercase text-slate-400">Suhu Larutan</span>
+<span class="text-[10px] font-medium tracking-wide uppercase text-slate-400">Suhu Air</span>
 <div class="w-6 h-6 rounded-lg bg-amber-950/90 border border-amber-500/30 flex items-center justify-center text-amber-400">
 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
 <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
@@ -129,7 +129,7 @@
 <div class="space-y-1">
 <div class="flex items-center space-x-1.5">
 <div class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
-<span class="text-[10px] font-medium tracking-wider uppercase text-slate-400">Ketinggian Larutan Garam</span>
+<span class="text-[10px] font-medium tracking-wider uppercase text-slate-400">Ketinggian Air</span>
 </div>
 <div class="flex items-baseline space-x-2">
 <span class="text-xl font-black text-white" id="v-level">—</span>
@@ -157,7 +157,7 @@
 <div class="flex items-center justify-between px-1">
 <div class="flex items-center space-x-2">
 <div class="w-2 h-2 rounded-sm bg-emerald-400 shadow-[0_0_8px_#34d399]"></div>
-<h2 class="text-xs font-bold text-slate-200 tracking-wide uppercase">SLAVE 2 • AMBIENT &amp; AKTUATOR INKUBASI</h2>
+<h2 class="text-xs font-bold text-slate-200 tracking-wide uppercase">SLAVE 2</h2>
 </div>
 <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-800/60" id="badge-s2">Menunggu</span>
 </div>
@@ -224,7 +224,7 @@
 <div class="grid grid-cols-2 gap-2.5" id="extra-grid"></div>
 </section>
 <section class="space-y-2">
-<h3 class="px-1 text-xs font-bold text-slate-200 tracking-wide uppercase">Data mentah (sama dengan Serial Monitor)</h3>
+<h3 class="px-1 text-xs font-bold text-slate-200 tracking-wide uppercase">Serial Monitor</h3>
 <div class="glass-panel p-3 rounded-2xl border border-slate-800 font-mono text-[10px] space-y-1.5">
 <div class="flex gap-2"><span class="text-cyan-400 w-12 shrink-0">Slave 1</span><span id="raw-1" class="break-all text-slate-400">—</span></div>
 <div class="flex gap-2"><span class="text-emerald-400 w-12 shrink-0">Slave 2</span><span id="raw-2" class="break-all text-slate-400">—</span></div>
@@ -237,7 +237,7 @@
 <svg class="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewbox="0 0 24 24">
 <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"></path>
 </svg>
-<h3 class="text-xs font-bold text-slate-200 uppercase tracking-wide">PANEL KONTROL AKTUATOR</h3>
+<h3 class="text-xs font-bold text-slate-200 uppercase tracking-wide">Kontrol Lampu</h3>
 </div>
 
 </div>
@@ -250,7 +250,7 @@
 </svg>
 </div>
 <div>
-<p class="text-xs font-bold text-white">Saklar Pemanas / Heater Telur</p>
+<p class="text-xs font-bold text-white">Lampu</p>
 <p class="text-[11px] text-amber-400 font-medium" id="switch-subtitle">Kondisi: —</p>
 </div>
 </div>
@@ -378,7 +378,7 @@
       $('heater-status-text').textContent = 'MENYALA';
       $('heater-status-text').className = 'text-lg font-black tracking-tight text-amber-300';
       $('heater-bulb-indicator').className = 'w-2.5 h-2.5 rounded-full bg-amber-400 shadow-glow-amber animate-pulse';
-      $('switch-subtitle').textContent = 'Kondisi: Heater MENYALA';
+      $('switch-subtitle').textContent = 'Kondisi: MENYALA';
       $('switch-subtitle').className = 'text-[11px] text-amber-400 font-medium';
       $('switch-icon-bg').className = 'w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 transition-colors';
     } else {
@@ -387,7 +387,7 @@
       $('heater-status-text').textContent = on === null ? '—' : 'MATI';
       $('heater-status-text').className = 'text-lg font-black tracking-tight text-slate-500';
       $('heater-bulb-indicator').className = 'w-2.5 h-2.5 rounded-full bg-slate-600';
-      $('switch-subtitle').textContent = 'Kondisi: ' + (on === null ? '—' : 'Heater MATI');
+      $('switch-subtitle').textContent = 'Kondisi: ' + (on === null ? '—' : 'MATI');
       $('switch-subtitle').className = 'text-[11px] text-slate-400 font-medium';
       $('switch-icon-bg').className = 'w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-500 transition-colors';
     }
