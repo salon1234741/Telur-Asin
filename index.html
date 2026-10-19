@@ -267,7 +267,7 @@
 <!-- BEGIN: CycleAndClockFooter -->
 <section class="glass-panel p-3 rounded-2xl border border-slate-800 flex items-center justify-between text-xs" data-purpose="cycle-day-card">
 <div class="flex items-center space-x-2.5">
-<div class="px-2.5 py-1 rounded-lg bg-amber-950/80 border border-amber-500/40 text-amber-300 font-mono font-bold tracking-wider text-[11px] shadow-sm" id="day-badge" title="Ketuk untuk mulai ulang siklus" style="cursor:pointer">DAY - 1</div>
+<div class="px-2.5 py-1 rounded-lg bg-amber-950/80 border border-amber-500/40 text-amber-300 font-mono font-bold tracking-wider text-[11px] shadow-sm" id="day-badge" title="Ketuk untuk mengatur hari" style="cursor:pointer">DAY - 1</div>
 <div>
 <p class="font-semibold text-slate-200 text-[11px]" id="cycle-text">Siklus Pengasinan</p>
 <p class="text-[9px] text-emerald-400 font-medium" id="cycle-eta"></p>
@@ -437,6 +437,7 @@
     badge(n, true); espOnline = true; pill();
     var used = {}, slots = SLOTS[n];
     parsePairs(raw).forEach(function (kv, i) {
+      if (/^(hari|day)$/i.test(kv[0])) { var dn = parseInt(kv[1], 10); if (dn > 0) { espDay = dn; cycle(); } return; }
       var slot = null;
       if (/^Data \d+$/.test(kv[0])) { slot = slots[i] && !used[slots[i].id] ? slots[i] : null; }
       else { slot = slots.filter(function (s) { return !used[s.id] && s.re.test(kv[0]); })[0] || null; }
@@ -460,16 +461,21 @@
       $('live-footer-clock').textContent = pad(Math.floor(s / 3600)) + '.' + pad(Math.floor(s / 60) % 60) + '.' + pad(s % 60) + ' WIB';
     }
   }
+  var espDay = null;
   function cycle() {
     var st; try { st = localStorage.getItem('cycleStart'); } catch (e) {}
     if (!st) { st = new Date().toDateString(); try { localStorage.setItem('cycleStart', st); } catch (e) {} }
-    var day = Math.floor((new Date(new Date().toDateString()) - new Date(st)) / 864e5) + 1;
+    var day = espDay !== null ? espDay : Math.floor((new Date(new Date().toDateString()) - new Date(st)) / 864e5) + 1;
     $('day-badge').textContent = 'DAY - ' + day;
     $('cycle-text').textContent = 'Siklus Pengasinan: Hari ke-' + day + ' / ' + CFG.cycleDays;
     $('cycle-eta').textContent = day >= CFG.cycleDays ? 'Siklus selesai' : 'Estimasi Panen: ' + (CFG.cycleDays - day) + ' Hari Lagi';
   }
   $('day-badge').addEventListener('click', function () {
-    if (confirm('Mulai ulang siklus dari hari ini?')) { try { localStorage.setItem('cycleStart', new Date().toDateString()); } catch (e) {} cycle(); }
+    var n = parseInt(prompt('Hari ke berapa sekarang? (1-' + CFG.cycleDays + ')', $('day-badge').textContent.replace(/\D/g, '')), 10);
+    if (!(n >= 1)) return;
+    var d = new Date(); d.setDate(d.getDate() - (n - 1));
+    try { localStorage.setItem('cycleStart', d.toDateString()); } catch (e) {}
+    espDay = null; cycle();
   });
 
   /* ============ MQTT ============ */
