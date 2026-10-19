@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AquaMonitor – Dashboard IoT Akuarium</title>
+  <meta name="description"
+    content="Dashboard monitoring dan kontrol IoT akuarium berbasis MQTT. Pantau suhu air, suhu udara, ketinggian air, dan kadar garam secara real-time." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <!-- =====================================================
+       PHONE FRAME WRAPPER
+  ====================================================== -->
+  <div class="phone-frame">
+    <div class="phone-screen">
+
+      <!-- Dynamic Island / Notch -->
+      <div class="dynamic-island" aria-hidden="true">
+        <div class="di-camera"></div>
+      </div>
+
+      <!-- ---- STATUS BAR (jam + ikon) ---- -->
+      <div class="status-bar" aria-hidden="true">
+        <span class="status-bar-time" id="status-time">21:00</span>
+        <div class="status-bar-icons">
+          <span>●●●●</span>
+          <span>WiFi</span>
+          <span>🔋</span>
+        </div>
+      </div>
+
+      <!-- ---- APP HEADER ---- -->
+      <header class="app-header">
+        <div class="app-header-row">
+          <div class="app-logo">
+            <div class="app-logo-icon" aria-hidden="true">🐟</div>
+            <div class="app-logo-text">
+              <h1>AquaMonitor</h1>
+              <span>IoT Dashboard</span>
+            </div>
+          </div>
+          <div id="mqtt-status-badge" class="connecting" role="status" aria-live="polite">
+            <span class="status-dot"></span>
+            <span id="mqtt-status-text">Connecting</span>
+          </div>
+        </div>
+        <div class="app-subrow">
+          <span class="app-greeting">Monitoring Akuarium Real-Time</span>
+          <span id="last-update" aria-live="polite"></span>
+        </div>
+      </header>
+
+      <!-- ---- SCROLLABLE CONTENT ---- -->
+      <div class="phone-content" id="phone-content">
+
+        <!-- SENSOR CARDS -->
+        <p class="section-label">&#x1F4E1; Data Sensor</p>
+        <div class="sensor-grid" id="sensor-grid">
+          <p id="sensor-empty" style="grid-column:1/-1;color:#6b7694;font-size:.85rem;padding:18px 4px;">
+            Menunggu data dari ESP32&hellip; kartu muncul otomatis sesuai data yang diterima.
+          </p>
+        </div><!-- /sensor-grid -->
+
+        <!-- PANEL KONTROL -->
+        <p class="section-label" style="margin-top:6px;">&#x1F39B;&#xFE0F; Panel Kontrol</p>
+        <div class="control-grid">
+
+          <!-- Kontrol Lampu -->
+          <div class="lamp-card" id="lamp-card" aria-label="Kontrol Lampu">
+            <div class="lamp-card-body">
+              <div class="lamp-card-left">
+                <div class="lamp-icon-wrap" aria-hidden="true">&#x1F4A1;</div>
+                <div class="lamp-info">
+                  <h3>Lampu Akuarium</h3>
+                  <div class="lamp-state-display">
+                    <div class="lamp-state-dot" id="lamp-dot"></div>
+                    <span class="lamp-state-text" id="lamp-text">OFF &ndash; Mati</span>
+                  </div>
+                </div>
+              </div>
+              <label class="toggle-switch" aria-label="Toggle Lampu">
+                <input type="checkbox" id="lamp-toggle" onchange="handleLampToggle(this.checked)" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="lamp-topic">
+              <span class="lamp-topic-label">Topik MQTT</span>
+              <span class="lamp-topic-badge">akuarium/control/lampu</span>
+            </div>
+          </div>
+
+          <!-- Activity Log -->
+          <div class="info-card">
+            <div class="info-card-header">
+              <h3>&#x1F4CB; Activity Log</h3>
+              <button class="btn-clear" onclick="clearLog()" aria-label="Bersihkan log">
+                Hapus
+              </button>
+            </div>
+            <div class="log-container" id="log-container" role="log" aria-live="polite" aria-label="Log aktivitas">
+            </div>
+            <div class="broker-info">
+              <div class="broker-chip">
+                <span class="bc-key">Host</span>
+                <span class="bc-val" style="font-size: 0.75rem;">v28c2407.ala.asia-southeast1.emqxsl.com</span>
+              </div>
+              <div class="broker-chip">
+                <span class="bc-key">Port</span>
+                <span class="bc-val">8084</span>
+              </div>
+              <div class="broker-chip">
+                <span class="bc-key">WS</span>
+                <span class="bc-val">MQTT</span>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /control-grid -->
+
+        <!-- App Footer (inside scroll area) -->
+        <footer class="app-footer">
+          <p>AquaMonitor &middot; MQTT over WebSocket &middot; <span>&#x2665;</span></p>
+        </footer>
+
+      </div><!-- /phone-content -->
+
+      <!-- ---- BOTTOM NAVIGATION BAR ---- -->
+      <nav class="bottom-nav" aria-label="Navigasi utama">
+        <button class="nav-item active" aria-label="Beranda" id="nav-home">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-label">Beranda</span>
+        </button>
+        <button class="nav-item" aria-label="Sensor" id="nav-sensor" onclick="scrollToSensor()">
+          <span class="nav-icon">📡</span>
+          <span class="nav-label">Sensor</span>
+        </button>
+        <button class="nav-item" aria-label="Kontrol" id="nav-control" onclick="scrollToControl()">
+          <span class="nav-icon">🎛️</span>
+          <span class="nav-label">Kontrol</span>
+        </button>
+        <button class="nav-item" aria-label="Log" id="nav-log" onclick="scrollToLog()">
+          <span class="nav-icon">📋</span>
+          <span class="nav-label">Log</span>
+        </button>
+      </nav>
+
+      <!-- Home indicator -->
+      <div class="home-indicator" aria-hidden="true"></div>
+
+    </div><!-- /phone-screen -->
+  </div><!-- /phone-frame -->
+
+  <!-- Desktop label below phone -->
+  <p class="desktop-label">AquaMonitor IoT · MQTT WebSocket</p>
+
+  <!-- Toast Container -->
+  <div id="toast-container" aria-live="assertive" aria-atomic="true"></div>
+
+  <!-- =====================================================
+       SCRIPTS
+       Urutan pemuatan penting – jangan diubah:
+       1. Paho MQTT  – library WebSocket
+       2. config.js  – konfigurasi MQTT
+       3. ui.js      – fungsi UI & helper
+       4. sensor.js  – pemrosesan data sensor
+       5. lamp.js    – kontrol lampu
+       6. mqtt.js    – koneksi & manajemen MQTT
+       7. app.js     – inisialisasi & demo mode
+  ====================================================== -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+  <script src="config.js"></script>
+  <script src="ui.js"></script>
+  <script src="sensor.js"></script>
+  <script src="lamp.js"></script>
+  <script src="mqtt.js"></script>
+  <script src="app.js"></script>
+
+  <!-- Bottom nav scroll helpers & status bar clock -->
+  <script>
+    /* ---- Status bar live clock ---- */
+    function updateClock() {
+      var el = document.getElementById('status-time');
+      if (el) {
+        el.textContent = new Date().toLocaleTimeString('id-ID', {
+          hour: '2-digit', minute: '2-digit'
+        });
+      }
+    }
+    updateClock();
+    setInterval(updateClock, 30000);
+
+    /* ---- Bottom nav scroll helpers ---- */
+    var navItems = document.querySelectorAll('.nav-item');
+
+    function setActiveNav(id) {
+      navItems.forEach(function (n) { n.classList.remove('active'); });
+      var el = document.getElementById(id);
+      if (el) el.classList.add('active');
+    }
+
+    function scrollToSensor() {
+      document.getElementById('sensor-grid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setActiveNav('nav-sensor');
+    }
+
+    function scrollToControl() {
+      document.querySelector('.control-grid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setActiveNav('nav-control');
+    }
+
+    function scrollToLog() {
+      document.getElementById('log-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setActiveNav('nav-log');
+    }
+
+    document.getElementById('nav-home').addEventListener('click', function () {
+      document.getElementById('phone-content').scrollTo({ top: 0, behavior: 'smooth' });
+      setActiveNav('nav-home');
+    });
+  </script>
+
+</body>
+
+</html>
