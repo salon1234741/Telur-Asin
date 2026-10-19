@@ -1,237 +1,483 @@
 <!DOCTYPE html>
-<html lang="id">
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AquaMonitor – Dashboard IoT Akuarium</title>
-  <meta name="description"
-    content="Dashboard monitoring dan kontrol IoT akuarium berbasis MQTT. Pantau suhu air, suhu udara, ketinggian air, dan kadar garam secara real-time." />
-
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
-    rel="stylesheet" />
-
-  <!-- Stylesheet -->
-  <link rel="stylesheet" href="style.css" />
+<html lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>SaltingEgg IoT - Smart Egg Brining System</title>
+<!-- Tailwind CSS CDN with plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            deepNavy: '#070b16',
+            surfaceCard: '#101726',
+            surfaceGlass: 'rgba(16, 23, 38, 0.75)',
+            accentCyan: '#06b6d4',
+            accentEmerald: '#10b981',
+            accentAmber: '#f59e0b',
+            accentOrange: '#f97316',
+            accentIndigo: '#6366f1'
+          },
+          boxShadow: {
+            'glow-cyan': '0 0 18px -2px rgba(6, 182, 212, 0.35)',
+            'glow-emerald': '0 0 18px -2px rgba(16, 185, 129, 0.35)',
+            'glow-amber': '0 0 18px -2px rgba(245, 158, 11, 0.45)',
+            'glow-orange': '0 0 18px -2px rgba(249, 115, 22, 0.4)',
+          }
+        }
+      }
+    };
+  </script>
+<!-- Custom Styles for Scrollbars & Glow Effects -->
+<style data-purpose="custom-enhancements">
+    /* Hide scrollbars for slick app view */
+    ::-webkit-scrollbar {
+      display: none;
+    }
+    body {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .glass-panel {
+      background: linear-gradient(135deg, rgba(22, 30, 49, 0.75) 0%, rgba(11, 17, 32, 0.88) 100%);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .glass-card {
+      background: linear-gradient(145deg, rgba(22, 32, 51, 0.65) 0%, rgba(13, 20, 36, 0.85) 100%);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+  </style>
 </head>
-
-<body>
-
-  <!-- =====================================================
-       PHONE FRAME WRAPPER
-  ====================================================== -->
-  <div class="phone-frame">
-    <div class="phone-screen">
-
-      <!-- Dynamic Island / Notch -->
-      <div class="dynamic-island" aria-hidden="true">
-        <div class="di-camera"></div>
-      </div>
-
-      <!-- ---- STATUS BAR (jam + ikon) ---- -->
-      <div class="status-bar" aria-hidden="true">
-        <span class="status-bar-time" id="status-time">21:00</span>
-        <div class="status-bar-icons">
-          <span>●●●●</span>
-          <span>WiFi</span>
-          <span>🔋</span>
-        </div>
-      </div>
-
-      <!-- ---- APP HEADER ---- -->
-      <header class="app-header">
-        <div class="app-header-row">
-          <div class="app-logo">
-            <div class="app-logo-icon" aria-hidden="true">🐟</div>
-            <div class="app-logo-text">
-              <h1>AquaMonitor</h1>
-              <span>IoT Dashboard</span>
-            </div>
+<body class="bg-[#050811] text-slate-100 min-h-screen flex justify-center items-start p-0 sm:py-6 selection:bg-amber-500/30 selection:text-amber-200">
+<!-- BEGIN: MobileDeviceFrame -->
+<div class="w-full sm:max-w-[412px] bg-[#090e1c] min-h-screen sm:min-h-[890px] sm:rounded-[44px] shadow-2xl border-0 sm:border-[6px] sm:border-slate-800/80 flex flex-col relative overflow-hidden ring-1 ring-slate-700/50" data-purpose="phone-container">
+<!-- Ambient background glows -->
+<div class="absolute -top-28 -left-28 w-64 h-64 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute top-1/3 -right-28 w-72 h-72 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute bottom-20 left-10 w-60 h-60 bg-cyan-600/10 rounded-full blur-3xl pointer-events-none"></div>
+<!-- BEGIN: iOSStatusBar -->
+<div class="w-full pt-3 px-7 pb-2 flex justify-between items-center z-30 select-none text-slate-300" data-purpose="ios-status-bar">
+<span class="text-xs font-semibold tracking-tight text-slate-200" id="current-phone-time">11.56</span>
+<!-- Dynamic Island Mock -->
+<div class="w-20 h-4 bg-black rounded-full flex items-center justify-center space-x-1.5 shadow-inner">
+<span class="w-1.5 h-1.5 rounded-full bg-slate-900 ring-1 ring-slate-800"></span>
+<span class="w-2 h-2 rounded-full bg-[#0a1128] border border-amber-500/30"></span>
+</div>
+<div class="flex items-center space-x-1.5 text-xs text-slate-200">
+<!-- Cellular Signal -->
+<svg class="w-3.5 h-3.5 fill-current" viewbox="0 0 24 24">
+<path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 18.25A10.938 10.938 0 0 1 2 12C2 6.48 6.48 2 12 2s10 4.48 10 10c0 2.32-.79 4.47-2.12 6.18l-.62-.62C20.35 16.14 21 14.16 21 12c0-4.97-4.03-9-9-9z"></path>
+<path d="M12 6c-3.31 0-6 2.69-6 6 0 1.48.54 2.83 1.43 3.88l.71-.71A4.954 4.954 0 0 1 7 12c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.22-.44 2.34-1.17 3.21l.71.71C17.48 14.86 18 13.5 18 12c0-3.31-2.69-6-6-6z"></path>
+<circle cx="12" cy="12" r="2"></circle>
+</svg>
+<span class="text-[10px] font-mono tracking-wide">WiFi</span>
+<!-- Battery Icon -->
+<div class="w-5 h-2.5 border border-slate-300 rounded-sm p-0.5 flex items-center">
+<div class="bg-emerald-400 h-full w-[85%] rounded-[1px]"></div>
+</div>
+</div>
+</div>
+<!-- END: iOSStatusBar -->
+<!-- BEGIN: AppHeader -->
+<header class="px-5 pt-2 pb-3 z-20 flex flex-col space-y-2 border-b border-slate-800/60 glass-panel">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<!-- Logo Badge: Telur Asin Modern Icon -->
+<div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 via-orange-500 to-cyan-600 p-0.5 shadow-glow-amber flex items-center justify-center">
+<div class="w-full h-full bg-[#0a1226] rounded-[14px] flex items-center justify-center relative overflow-hidden">
+<!-- Outer egg shell outline -->
+<svg class="w-7 h-7 text-amber-200" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 24 24">
+<!-- Stylized Egg Silhouette with Brine Waves & Golden Yolk -->
+<path d="M12 2C8 2 5 7.5 5 13.5a7 7 0 0 0 14 0C19 7.5 16 2 12 2z" stroke="#cbd5e1" stroke-width="1.5"></path>
+<ellipse cx="12" cy="13.5" fill="#f59e0b" rx="4" ry="4.5" stroke="#fbbf24" stroke-width="1.2"></ellipse>
+<ellipse cx="10.8" cy="12.2" fill="#fef3c7" opacity="0.6" rx="1.2" ry="1.5"></ellipse>
+<path d="M4.5 15.5c2 .8 4 .8 7 .2s5 .2 7.5 1.3" opacity="0.8" stroke="#06b6d4" stroke-width="1.5"></path>
+</svg>
+</div>
+</div>
+<div>
+<div class="flex items-center space-x-1.5">
+<h1 class="text-base font-extrabold tracking-wide text-white">SaltingEgg IoT</h1>
+<span class="text-[9px] font-mono uppercase tracking-wider text-amber-300 bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-800/60 font-semibold">v2.4</span>
+</div>
+<p class="text-[10px] tracking-wider text-slate-400 uppercase font-medium">MONITORING PENGASINAN TELUR ASIN • ESP32 SYSTEM</p>
+</div>
+</div>
+<!-- ESP32 Connection Pill -->
+<div class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/50 shadow-glow-emerald">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+</span>
+<span class="text-[11px] font-semibold text-emerald-300 tracking-tight">ESP32 Terhubung</span>
+</div>
+</div>
+<!-- Real-Time Subtitle Bar -->
+<div class="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+<div class="flex items-center space-x-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+<span class="text-slate-300 font-medium">WiFi Stabil • Inkubasi Aktif</span>
+</div>
+<div class="flex items-center space-x-1 text-slate-400 font-mono text-[10px] bg-slate-900/80 px-2 py-0.5 rounded-md border border-slate-800">
+<svg class="w-3 h-3 text-amber-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="10" stroke-width="2"></circle>
+<polyline points="12 6 12 12 16 14" stroke-width="2"></polyline>
+</svg>
+<span id="live-header-clock">11.56.34 WIB</span>
+</div>
+</div>
+</header>
+<!-- END: AppHeader -->
+<!-- BEGIN: MainContent -->
+<main class="flex-1 px-4 py-3 space-y-4 overflow-y-auto z-10 pb-20">
+<!-- BEGIN: SectionSlave1 -->
+<section class="space-y-2.5" data-purpose="slave-1-sensor-section">
+<!-- Section Header -->
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center space-x-2">
+<div class="w-2 h-2 rounded-sm bg-cyan-400 shadow-[0_0_8px_#22d3ee]"></div>
+<h2 class="text-xs font-bold text-slate-200 tracking-wide uppercase">SLAVE 1 • SENSOR WADAH PERENDAMAN TELUR</h2>
+</div>
+<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-cyan-950/80 text-cyan-300 border border-cyan-800/60">
+            Node Aktif
+          </span>
+</div>
+<!-- Sensor Grid SLAVE 1: 3 Cards -->
+<div class="grid grid-cols-2 gap-2.5">
+<!-- Card 1: Salinitas / Kepekatan Garam -->
+<article class="glass-card p-3 rounded-2xl border border-cyan-500/20 relative overflow-hidden group hover:border-cyan-500/40 transition-all" data-purpose="salinity-brine-card">
+<div class="absolute -right-4 -bottom-4 w-16 h-16 bg-cyan-500/10 rounded-full blur-xl pointer-events-none"></div>
+<div class="flex items-center justify-between mb-1.5">
+<span class="text-[10px] font-medium tracking-wide uppercase text-slate-400">Kepekatan Garam</span>
+<div class="w-6 h-6 rounded-lg bg-cyan-950/90 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+</svg>
+</div>
+</div>
+<div class="flex items-baseline space-x-1">
+<span class="text-2xl font-extrabold text-white tracking-tight">22.4</span>
+<span class="text-xs font-semibold text-cyan-400">%</span>
+</div>
+<!-- Segmented Progress Bar -->
+<div class="mt-2.5 flex space-x-1" title="Status: Salinitas Ideal">
+<span class="h-1.5 flex-1 rounded-full bg-cyan-400 shadow-[0_0_6px_#22d3ee]"></span>
+<span class="h-1.5 flex-1 rounded-full bg-cyan-400 shadow-[0_0_6px_#22d3ee]"></span>
+<span class="h-1.5 flex-1 rounded-full bg-cyan-400 shadow-[0_0_6px_#22d3ee]"></span>
+<span class="h-1.5 flex-1 rounded-full bg-cyan-400 shadow-[0_0_6px_#22d3ee]"></span>
+<span class="h-1.5 flex-1 rounded-full bg-slate-700/60"></span>
+</div>
+<div class="mt-2 flex items-center justify-between text-[9px] text-slate-400">
+<span class="text-emerald-400 font-medium">Ideal Telur Bebek</span>
+<span class="font-mono">1.18 SG / 1650 ppm</span>
+</div>
+</article>
+<!-- Card 2: Suhu Larutan Garam -->
+<article class="glass-card p-3 rounded-2xl border border-amber-500/20 relative overflow-hidden group hover:border-amber-500/40 transition-all" data-purpose="brine-temp-card">
+<div class="absolute -right-4 -bottom-4 w-16 h-16 bg-amber-500/10 rounded-full blur-xl pointer-events-none"></div>
+<div class="flex items-center justify-between mb-1.5">
+<span class="text-[10px] font-medium tracking-wide uppercase text-slate-400">Suhu Larutan</span>
+<div class="w-6 h-6 rounded-lg bg-amber-950/90 border border-amber-500/30 flex items-center justify-center text-amber-400">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
+</svg>
+</div>
+</div>
+<div class="flex items-baseline space-x-1">
+<span class="text-2xl font-extrabold text-white tracking-tight">28.4</span>
+<span class="text-xs font-semibold text-amber-400">°C</span>
+</div>
+<!-- Continuous Level Indicator -->
+<div class="mt-2.5 w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+<div class="bg-gradient-to-r from-amber-500 to-orange-400 h-1.5 rounded-full w-[74%] shadow-[0_0_6px_#f59e0b]"></div>
+</div>
+<div class="mt-2 flex items-center justify-between text-[9px] text-slate-400">
+<span class="text-emerald-400 font-medium">Suhu Stabil</span>
+<span class="font-mono">Target: 26-30°C</span>
+</div>
+</article>
+<!-- Card 3: Ketinggian & Volume Larutan Garam (Full Width in Grid) -->
+<article class="col-span-2 glass-card p-3 rounded-2xl border border-cyan-500/25 relative overflow-hidden flex items-center justify-between" data-purpose="brine-level-card">
+<div class="space-y-1">
+<div class="flex items-center space-x-1.5">
+<div class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
+<span class="text-[10px] font-medium tracking-wider uppercase text-slate-400">Ketinggian Larutan Garam</span>
+</div>
+<div class="flex items-baseline space-x-2">
+<span class="text-xl font-black text-white">92% Terendam Sempurna</span>
+<span class="text-[11px] text-cyan-300 font-medium">(Posisi Aman)</span>
+</div>
+<p class="text-[10px] text-slate-400 font-mono">Volume ~ 45 Liter / 50 Liter</p>
+</div>
+<!-- Water Gauge Graphic with Egg Marker -->
+<div class="flex flex-col items-center justify-center">
+<div class="relative w-14 h-14 rounded-xl bg-slate-900 border border-cyan-500/30 flex items-center justify-center overflow-hidden">
+<div class="absolute bottom-0 left-0 right-0 h-[92%] bg-gradient-to-t from-cyan-600/80 to-blue-500/60"></div>
+<!-- Mini Egg silhouette submerged -->
+<div class="absolute z-10 bottom-2 w-3.5 h-4.5 rounded-full bg-amber-200/90 border border-amber-300 shadow-sm opacity-90"></div>
+<!-- Mini Wave Line -->
+<svg class="absolute w-full h-4 text-cyan-200/80 -top-1" preserveaspectratio="none" viewbox="0 0 40 10">
+<path d="M0 5 Q 10 0, 20 5 T 40 5 V 10 H 0 Z" fill="currentColor" opacity="0.35"></path>
+</svg>
+<span class="relative z-20 text-[11px] font-bold text-white font-mono drop-shadow">92%</span>
+</div>
+<span class="text-[9px] text-emerald-400 mt-1">Ultrasonik: OK</span>
+</div>
+</article>
+</div>
+</section>
+<!-- END: SectionSlave1 -->
+<!-- BEGIN: SectionSlave2 -->
+<section class="space-y-2.5" data-purpose="slave-2-sensor-section">
+<!-- Section Header -->
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center space-x-2">
+<div class="w-2 h-2 rounded-sm bg-emerald-400 shadow-[0_0_8px_#34d399]"></div>
+<h2 class="text-xs font-bold text-slate-200 tracking-wide uppercase">SLAVE 2 • AMBIENT &amp; AKTUATOR INKUBASI</h2>
+</div>
+<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-800/60">
+            Node Aktif
+          </span>
+</div>
+<div class="grid grid-cols-2 gap-2.5">
+<!-- Card 1: Suhu & Kelembaban Ruang Simpan -->
+<article class="glass-card p-3 rounded-2xl border border-emerald-500/20 relative overflow-hidden group hover:border-emerald-500/40 transition-all" data-purpose="ambient-storage-card">
+<div class="flex items-center justify-between mb-1">
+<span class="text-[10px] font-medium tracking-wide uppercase text-slate-400">Ruang Simpan</span>
+<div class="w-6 h-6 rounded-lg bg-emerald-950/90 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M12 9a4 4 0 0 0-2 7.5"></path>
+<path d="M12 3v2"></path>
+<path d="M6.6 6.6l1.4 1.4"></path>
+<path d="M20 12h-2"></path>
+<path d="M6.6 17.4l1.4-1.4"></path>
+</svg>
+</div>
+</div>
+<div class="flex items-baseline space-x-1">
+<span class="text-2xl font-extrabold text-white tracking-tight">29.2</span>
+<span class="text-xs font-semibold text-emerald-400">°C</span>
+</div>
+<!-- Humidity detail badge -->
+<div class="mt-2.5 pt-2 border-t border-slate-800 flex items-center justify-between">
+<span class="text-[10px] text-slate-400">Kelembaban</span>
+<span class="text-xs font-bold text-emerald-300 font-mono">72%</span>
+</div>
+<div class="w-full bg-slate-800/80 rounded-full h-1 mt-1.5 overflow-hidden">
+<div class="bg-emerald-400 h-1 rounded-full w-[72%] shadow-[0_0_6px_#34d399]"></div>
+</div>
+</article>
+<!-- Card 2: Status Heater Inkubasi -->
+<article class="glass-card p-3 rounded-2xl border border-amber-500/20 relative overflow-hidden group hover:border-amber-500/40 transition-all flex flex-col justify-between" data-purpose="heater-status-card">
+<div>
+<div class="flex items-center justify-between mb-1">
+<span class="text-[10px] font-medium tracking-wide uppercase text-slate-400">Heater Inkubasi</span>
+<div class="w-6 h-6 rounded-lg bg-amber-950/80 border border-amber-500/30 flex items-center justify-center text-amber-400">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<line x1="12" x2="12" y1="1" y2="3"></line>
+<line x1="12" x2="12" y1="21" y2="23"></line>
+<line x1="4.22" x2="5.64" y1="4.22" y2="5.64"></line>
+<line x1="18.36" x2="19.78" y1="18.36" y2="19.78"></line>
+<line x1="1" x2="3" y1="12" y2="12"></line>
+<line x1="21" x2="23" y1="12" y2="12"></line>
+<circle cx="12" cy="12" r="5"></circle>
+</svg>
+</div>
+</div>
+<!-- Dynamic status indicator -->
+<div class="flex items-center space-x-2 mt-1">
+<span class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-glow-amber animate-pulse" id="heater-bulb-indicator"></span>
+<span class="text-lg font-black tracking-tight text-amber-300" id="heater-status-text">MENYALA</span>
+</div>
+</div>
+<div class="mt-3 pt-1 text-[9px] text-slate-400 flex items-center justify-between">
+<span class="text-amber-400/90 font-medium">Pemanas Aktif</span>
+<span class="text-amber-400/80 font-mono">Relay #1</span>
+</div>
+</article>
+</div>
+</section>
+<!-- END: SectionSlave2 -->
+<!-- BEGIN: ControlPanel -->
+<section class="space-y-2" data-purpose="control-panel-section">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center space-x-1.5">
+<svg class="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewbox="0 0 24 24">
+<path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"></path>
+</svg>
+<h3 class="text-xs font-bold text-slate-200 uppercase tracking-wide">PANEL KONTROL AKTUATOR</h3>
+</div>
+<span class="text-[10px] text-slate-400">Heater Relays Aktif</span>
+</div>
+<!-- Toggle Switch Card -->
+<div class="glass-panel p-3.5 rounded-2xl border border-slate-700/60 flex items-center justify-between shadow-lg">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 transition-colors" id="switch-icon-bg">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div>
+<p class="text-xs font-bold text-white">Saklar Pemanas / Heater Telur</p>
+<p class="text-[11px] text-amber-400 font-medium" id="switch-subtitle">Kondisi: Heater MENYALA</p>
+</div>
+</div>
+<!-- Interactive-looking Toggle Switch Button with Neon Glow -->
+<button aria-pressed="true" class="relative inline-flex h-8 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none bg-gradient-to-r from-amber-500 to-orange-500 shadow-glow-amber" id="toggle-heater-btn" type="button">
+<span class="sr-only">Toggle Heater Inkubasi</span>
+<span class="pointer-events-none inline-block h-7 w-7 transform rounded-full bg-slate-900 shadow-lg ring-0 transition duration-300 ease-in-out translate-x-6 flex items-center justify-center" id="toggle-circle">
+<span class="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_6px_#f59e0b]"></span>
+</span>
+</button>
+</div>
+</section>
+<!-- END: ControlPanel -->
+<!-- BEGIN: CycleAndClockFooter -->
+<section class="glass-panel p-3 rounded-2xl border border-slate-800 flex items-center justify-between text-xs" data-purpose="cycle-day-card">
+<div class="flex items-center space-x-2.5">
+<div class="px-2.5 py-1 rounded-lg bg-amber-950/80 border border-amber-500/40 text-amber-300 font-mono font-bold tracking-wider text-[11px] shadow-sm">
+            DAY - 10
           </div>
-          <div id="mqtt-status-badge" class="connecting" role="status" aria-live="polite">
-            <span class="status-dot"></span>
-            <span id="mqtt-status-text">Connecting</span>
-          </div>
-        </div>
-        <div class="app-subrow">
-          <span class="app-greeting">Monitoring Akuarium Real-Time</span>
-          <span id="last-update" aria-live="polite"></span>
-        </div>
-      </header>
+<div>
+<p class="font-semibold text-slate-200 text-[11px]">Siklus Pengasinan: Hari ke-10 / 14</p>
+<p class="text-[9px] text-emerald-400 font-medium">Estimasi Panen: 4 Hari Lagi</p>
+</div>
+</div>
+<div class="text-right">
+<span class="text-[10px] text-slate-400 block">Waktu ESP32 Real-Time</span>
+<span class="font-mono text-[11px] text-emerald-400 font-medium flex items-center justify-end space-x-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-ping"></span>
+<span id="live-footer-clock">11.56.34 WIB</span>
+</span>
+</div>
+</section>
+<!-- END: CycleAndClockFooter -->
+</main>
+<!-- END: MainContent -->
+<!-- BEGIN: BottomNavigation -->
+<nav class="absolute bottom-0 left-0 right-0 h-16 bg-[#090f1d]/95 backdrop-blur-md border-t border-slate-800/80 px-6 flex items-center justify-between z-30" data-purpose="bottom-navigation-bar">
+<!-- Beranda -->
+<button class="flex flex-col items-center justify-center space-y-1 text-slate-400 hover:text-slate-200 transition-colors group" type="button">
+<svg class="w-5 h-5 text-slate-400 group-hover:text-slate-200" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+</svg>
+<span class="text-[10px] font-medium tracking-tight">Beranda</span>
+</button>
+<!-- Sensor (Active Tab) -->
+<button class="flex flex-col items-center justify-center space-y-1 text-amber-400 transition-colors relative" type="button">
+<div class="w-5 h-5 flex items-center justify-center">
+<svg class="w-5 h-5 text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]" fill="none" stroke="currentColor" stroke-width="2.2" viewbox="0 0 24 24">
+<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<span class="text-[10px] font-bold tracking-tight text-amber-300">Sensor</span>
+<span class="absolute -bottom-1 w-1.5 h-1.5 bg-amber-400 rounded-full shadow-[0_0_6px_#f59e0b]"></span>
+</button>
+<!-- Kontrol -->
+<button class="flex flex-col items-center justify-center space-y-1 text-slate-400 hover:text-slate-200 transition-colors group" type="button">
+<svg class="w-5 h-5 text-slate-400 group-hover:text-slate-200" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="3"></circle>
+<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+</svg>
+<span class="text-[10px] font-medium tracking-tight">Kontrol</span>
+</button>
+<!-- Log -->
+<button class="flex flex-col items-center justify-center space-y-1 text-slate-400 hover:text-slate-200 transition-colors group" type="button">
+<svg class="w-5 h-5 text-slate-400 group-hover:text-slate-200" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+<polyline points="14 2 14 8 20 8"></polyline>
+<line x1="16" x2="8" y1="13" y2="13"></line>
+<line x1="16" x2="8" y1="17" y2="17"></line>
+<polyline points="10 9 9 9 8 9"></polyline>
+</svg>
+<span class="text-[10px] font-medium tracking-tight">Log</span>
+</button>
+</nav>
+<!-- END: BottomNavigation -->
+</div>
+<!-- END: MobileDeviceFrame -->
+<!-- BEGIN: InteractiveHandlers -->
+<script data-purpose="toggle-heater-and-clock">
+    document.addEventListener('DOMContentLoaded', () => {
+      // Toggle Switch logic for Heater Inkubasi
+      const toggleBtn = document.getElementById('toggle-heater-btn');
+      const toggleCircle = document.getElementById('toggle-circle');
+      const heaterStatusText = document.getElementById('heater-status-text');
+      const heaterBulbIndicator = document.getElementById('heater-bulb-indicator');
+      const switchSubtitle = document.getElementById('switch-subtitle');
+      const switchIconBg = document.getElementById('switch-icon-bg');
 
-      <!-- ---- SCROLLABLE CONTENT ---- -->
-      <div class="phone-content" id="phone-content">
+      let isHeaterOn = true;
 
-        <!-- SENSOR CARDS -->
-        <p class="section-label">&#x1F4E1; Data Sensor</p>
-        <div class="sensor-grid" id="sensor-grid">
-          <p id="sensor-empty" style="grid-column:1/-1;color:#6b7694;font-size:.85rem;padding:18px 4px;">
-            Menunggu data dari ESP32&hellip; kartu muncul otomatis sesuai data yang diterima.
-          </p>
-        </div><!-- /sensor-grid -->
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+          isHeaterOn = !isHeaterOn;
 
-        <!-- PANEL KONTROL -->
-        <p class="section-label" style="margin-top:6px;">&#x1F39B;&#xFE0F; Panel Kontrol</p>
-        <div class="control-grid">
-
-          <!-- Kontrol Lampu -->
-          <div class="lamp-card" id="lamp-card" aria-label="Kontrol Lampu">
-            <div class="lamp-card-body">
-              <div class="lamp-card-left">
-                <div class="lamp-icon-wrap" aria-hidden="true">&#x1F4A1;</div>
-                <div class="lamp-info">
-                  <h3>Lampu Akuarium</h3>
-                  <div class="lamp-state-display">
-                    <div class="lamp-state-dot" id="lamp-dot"></div>
-                    <span class="lamp-state-text" id="lamp-text">OFF &ndash; Mati</span>
-                  </div>
-                </div>
-              </div>
-              <label class="toggle-switch" aria-label="Toggle Lampu">
-                <input type="checkbox" id="lamp-toggle" onchange="handleLampToggle(this.checked)" />
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-            <div class="lamp-topic">
-              <span class="lamp-topic-label">Topik MQTT</span>
-              <span class="lamp-topic-badge">akuarium/control/lampu</span>
-            </div>
-          </div>
-
-          <!-- Activity Log -->
-          <div class="info-card">
-            <div class="info-card-header">
-              <h3>&#x1F4CB; Activity Log</h3>
-              <button class="btn-clear" onclick="clearLog()" aria-label="Bersihkan log">
-                Hapus
-              </button>
-            </div>
-            <div class="log-container" id="log-container" role="log" aria-live="polite" aria-label="Log aktivitas">
-            </div>
-            <div class="broker-info">
-              <div class="broker-chip">
-                <span class="bc-key">Host</span>
-                <span class="bc-val" style="font-size: 0.75rem;">v28c2407.ala.asia-southeast1.emqxsl.com</span>
-              </div>
-              <div class="broker-chip">
-                <span class="bc-key">Port</span>
-                <span class="bc-val">8084</span>
-              </div>
-              <div class="broker-chip">
-                <span class="bc-key">WS</span>
-                <span class="bc-val">MQTT</span>
-              </div>
-            </div>
-          </div>
-
-        </div><!-- /control-grid -->
-
-        <!-- App Footer (inside scroll area) -->
-        <footer class="app-footer">
-          <p>AquaMonitor &middot; MQTT over WebSocket &middot; <span>&#x2665;</span></p>
-        </footer>
-
-      </div><!-- /phone-content -->
-
-      <!-- ---- BOTTOM NAVIGATION BAR ---- -->
-      <nav class="bottom-nav" aria-label="Navigasi utama">
-        <button class="nav-item active" aria-label="Beranda" id="nav-home">
-          <span class="nav-icon">🏠</span>
-          <span class="nav-label">Beranda</span>
-        </button>
-        <button class="nav-item" aria-label="Sensor" id="nav-sensor" onclick="scrollToSensor()">
-          <span class="nav-icon">📡</span>
-          <span class="nav-label">Sensor</span>
-        </button>
-        <button class="nav-item" aria-label="Kontrol" id="nav-control" onclick="scrollToControl()">
-          <span class="nav-icon">🎛️</span>
-          <span class="nav-label">Kontrol</span>
-        </button>
-        <button class="nav-item" aria-label="Log" id="nav-log" onclick="scrollToLog()">
-          <span class="nav-icon">📋</span>
-          <span class="nav-label">Log</span>
-        </button>
-      </nav>
-
-      <!-- Home indicator -->
-      <div class="home-indicator" aria-hidden="true"></div>
-
-    </div><!-- /phone-screen -->
-  </div><!-- /phone-frame -->
-
-  <!-- Desktop label below phone -->
-  <p class="desktop-label">AquaMonitor IoT · MQTT WebSocket</p>
-
-  <!-- Toast Container -->
-  <div id="toast-container" aria-live="assertive" aria-atomic="true"></div>
-
-  <!-- =====================================================
-       SCRIPTS
-       Urutan pemuatan penting – jangan diubah:
-       1. Paho MQTT  – library WebSocket
-       2. config.js  – konfigurasi MQTT
-       3. ui.js      – fungsi UI & helper
-       4. sensor.js  – pemrosesan data sensor
-       5. lamp.js    – kontrol lampu
-       6. mqtt.js    – koneksi & manajemen MQTT
-       7. app.js     – inisialisasi & demo mode
-  ====================================================== -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
-  <script src="config.js"></script>
-  <script src="ui.js"></script>
-  <script src="sensor.js"></script>
-  <script src="lamp.js"></script>
-  <script src="mqtt.js"></script>
-  <script src="app.js"></script>
-
-  <!-- Bottom nav scroll helpers & status bar clock -->
-  <script>
-    /* ---- Status bar live clock ---- */
-    function updateClock() {
-      var el = document.getElementById('status-time');
-      if (el) {
-        el.textContent = new Date().toLocaleTimeString('id-ID', {
-          hour: '2-digit', minute: '2-digit'
+          if (isHeaterOn) {
+            // State: MENYALA (ON)
+            toggleBtn.classList.remove('bg-slate-700');
+            toggleBtn.classList.add('bg-gradient-to-r', 'from-amber-500', 'to-orange-500', 'shadow-glow-amber');
+            toggleCircle.classList.remove('translate-x-0');
+            toggleCircle.classList.add('translate-x-6');
+            
+            heaterStatusText.textContent = 'MENYALA';
+            heaterStatusText.className = 'text-lg font-black tracking-tight text-amber-300';
+            heaterBulbIndicator.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 shadow-glow-amber animate-pulse';
+            
+            switchSubtitle.textContent = 'Kondisi: Heater MENYALA';
+            switchSubtitle.className = 'text-[11px] text-amber-400 font-medium';
+            
+            switchIconBg.className = 'w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 transition-colors';
+          } else {
+            // State: MATI (OFF)
+            toggleBtn.classList.remove('bg-gradient-to-r', 'from-amber-500', 'to-orange-500', 'shadow-glow-amber');
+            toggleBtn.classList.add('bg-slate-700');
+            toggleCircle.classList.remove('translate-x-6');
+            toggleCircle.classList.add('translate-x-0');
+            
+            heaterStatusText.textContent = 'MATI';
+            heaterStatusText.className = 'text-lg font-black tracking-tight text-slate-500';
+            heaterBulbIndicator.className = 'w-2.5 h-2.5 rounded-full bg-slate-600';
+            
+            switchSubtitle.textContent = 'Kondisi: Heater MATI';
+            switchSubtitle.className = 'text-[11px] text-slate-400 font-medium';
+            
+            switchIconBg.className = 'w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-500 transition-colors';
+          }
         });
       }
-    }
-    updateClock();
-    setInterval(updateClock, 30000);
 
-    /* ---- Bottom nav scroll helpers ---- */
-    var navItems = document.querySelectorAll('.nav-item');
+      // Live Clock Mock updater
+      function updateLiveTime() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        
+        const timeShort = `${hours}.${minutes}`;
+        const timeFull = `${hours}.${minutes}.${seconds} WIB`;
+        
+        const phoneTime = document.getElementById('current-phone-time');
+        const headerClock = document.getElementById('live-header-clock');
+        const footerClock = document.getElementById('live-footer-clock');
 
-    function setActiveNav(id) {
-      navItems.forEach(function (n) { n.classList.remove('active'); });
-      var el = document.getElementById(id);
-      if (el) el.classList.add('active');
-    }
+        if (phoneTime) phoneTime.textContent = timeShort;
+        if (headerClock) headerClock.textContent = timeFull;
+        if (footerClock) footerClock.textContent = timeFull;
+      }
 
-    function scrollToSensor() {
-      document.getElementById('sensor-grid').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setActiveNav('nav-sensor');
-    }
-
-    function scrollToControl() {
-      document.querySelector('.control-grid').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setActiveNav('nav-control');
-    }
-
-    function scrollToLog() {
-      document.getElementById('log-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setActiveNav('nav-log');
-    }
-
-    document.getElementById('nav-home').addEventListener('click', function () {
-      document.getElementById('phone-content').scrollTo({ top: 0, behavior: 'smooth' });
-      setActiveNav('nav-home');
+      // Initial update and periodic refresh
+      updateLiveTime();
+      setInterval(updateLiveTime, 1000);
     });
   </script>
-
-</body>
-
-</html>
+<!-- END: InteractiveHandlers -->
+</body></html>
