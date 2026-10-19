@@ -84,7 +84,7 @@
 <div class="flex items-center justify-between px-1">
 <div class="flex items-center space-x-2">
 <div class="w-2 h-2 rounded-sm bg-cyan-400 shadow-[0_0_8px_#22d3ee]"></div>
-<h2 class="text-xs font-bold text-slate-200 tracking-wide uppercase">SLAVE 1</h2>
+<h2 class="text-xs font-bold text-slate-200 tracking-wide uppercase">SLAVE 1 • SENSOR WADAH PERENDAMAN TELUR</h2>
 </div>
 <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-cyan-950/80 text-cyan-300 border border-cyan-800/60" id="badge-s1">Menunggu</span>
 </div>
@@ -157,7 +157,7 @@
 <div class="flex items-center justify-between px-1">
 <div class="flex items-center space-x-2">
 <div class="w-2 h-2 rounded-sm bg-emerald-400 shadow-[0_0_8px_#34d399]"></div>
-<h2 class="text-xs font-bold text-slate-200 tracking-wide uppercase">SLAVE 2</h2>
+<h2 class="text-xs font-bold text-slate-200 tracking-wide uppercase">SLAVE 2 • AMBIENT &amp; AKTUATOR INKUBASI</h2>
 </div>
 <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-800/60" id="badge-s2">Menunggu</span>
 </div>
@@ -269,7 +269,7 @@
 <div class="flex items-center space-x-2.5">
 <div class="px-2.5 py-1 rounded-lg bg-amber-950/80 border border-amber-500/40 text-amber-300 font-mono font-bold tracking-wider text-[11px] shadow-sm" id="day-badge" title="Ketuk untuk mengatur hari" style="cursor:pointer">DAY - 1</div>
 <div>
-<p class="font-semibold text-slate-200 text-[11px]" id="cycle-text">Siklus Pengasinan</p>
+<p class="font-semibold text-slate-200 text-[11px]" id="cycle-text" style="cursor:pointer" title="Ketuk untuk mengatur lama siklus">Siklus Pengasinan</p>
 <p class="text-[9px] text-emerald-400 font-medium" id="cycle-eta"></p>
 </div>
 </div>
@@ -297,7 +297,7 @@
     user: 'Telur-asin', pass: 'TELURASIN12345',
     sub: 'telur/slave/+',               // data slave 1, 2, led, time, status
     cmd: 'telur/control/heater',        // perintah ON / OFF ke ESP32
-    cycleDays: 14                       // lama siklus pengasinan (hari)
+    cycleDays: 7                        // lama siklus pengasinan (hari), bisa diubah dengan mengetuk teks siklus
   };
   /* Kartu di desain dicocokkan dengan nama kolom dari ESP32 lewat kata kunci.
      Kalau slave hanya mengirim angka tanpa nama, dipakai urutan kartu. */
@@ -461,21 +461,30 @@
       $('live-footer-clock').textContent = pad(Math.floor(s / 3600)) + '.' + pad(Math.floor(s / 60) % 60) + '.' + pad(s % 60) + ' WIB';
     }
   }
-  var espDay = null;
+  var espDay = null, totalDays = CFG.cycleDays;
+  try { var sd = parseInt(localStorage.getItem('cycleDays'), 10); if (sd >= 1) totalDays = sd; } catch (e) {}
   function cycle() {
     var st; try { st = localStorage.getItem('cycleStart'); } catch (e) {}
     if (!st) { st = new Date().toDateString(); try { localStorage.setItem('cycleStart', st); } catch (e) {} }
     var day = espDay !== null ? espDay : Math.floor((new Date(new Date().toDateString()) - new Date(st)) / 864e5) + 1;
     $('day-badge').textContent = 'DAY - ' + day;
-    $('cycle-text').textContent = 'Siklus Pengasinan: Hari ke-' + day + ' / ' + CFG.cycleDays;
-    $('cycle-eta').textContent = day >= CFG.cycleDays ? 'Siklus selesai' : 'Estimasi Panen: ' + (CFG.cycleDays - day) + ' Hari Lagi';
+    $('cycle-text').textContent = 'Siklus Pengasinan: Hari ke-' + day + ' / ' + totalDays;
+    $('cycle-eta').textContent = day > totalDays ? 'Siklus selesai' : day === totalDays ? 'Estimasi Panen: hari ini' : 'Estimasi Panen: ' + (totalDays - day) + ' Hari Lagi';
   }
   $('day-badge').addEventListener('click', function () {
-    var n = parseInt(prompt('Hari ke berapa sekarang? (1-' + CFG.cycleDays + ')', $('day-badge').textContent.replace(/\D/g, '')), 10);
+    var n = parseInt(prompt('Hari ke berapa sekarang? (1-' + totalDays + ')', $('day-badge').textContent.replace(/\D/g, '')), 10);
     if (!(n >= 1)) return;
     var d = new Date(); d.setDate(d.getDate() - (n - 1));
     try { localStorage.setItem('cycleStart', d.toDateString()); } catch (e) {}
     espDay = null; cycle();
+  });
+
+  $('cycle-text').addEventListener('click', function () {
+    var n = parseInt(prompt('Lama siklus pengasinan (hari)?', totalDays), 10);
+    if (!(n >= 1)) return;
+    totalDays = n;
+    try { localStorage.setItem('cycleDays', String(n)); } catch (e) {}
+    cycle();
   });
 
   /* ============ MQTT ============ */
