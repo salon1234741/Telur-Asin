@@ -468,7 +468,7 @@
     if (!st) { st = new Date().toDateString(); try { localStorage.setItem('cycleStart', st); } catch (e) {} }
     var day = espDay !== null ? espDay : Math.floor((new Date(new Date().toDateString()) - new Date(st)) / 864e5) + 1;
     $('day-badge').textContent = 'DAY - ' + day;
-    $('cycle-text').textContent = 'Pengasinan Hari ke-' + day + '  dari  ' + totalDays;
+    $('cycle-text').textContent = 'Hari ke-' + day + '  Dari  Hari ke-' + totalDays;
     $('cycle-eta').textContent = day > totalDays ? 'Siklus selesai' : day === totalDays ? 'Estimasi Panen: hari ini' : 'Estimasi Panen: ' + (totalDays - day) + ' Hari Lagi';
   }
   $('day-badge').addEventListener('click', function () {
