@@ -492,6 +492,11 @@
     var tail = m.destinationName.split('/').pop(), t = m.payloadString;
     if (tail === 'status') { espOnline = /online/i.test(t); pill(); return; }
     if (m.retained) return;                       // abaikan data lama di broker
+    if (tail === 'siklus') {
+      var mm = t.match(/HARI:(\d+).*TARGET:(\d+)/i);
+      if (mm) { espDay = parseInt(mm[1], 10); totalDays = parseInt(mm[2], 10); cycle(); }
+      return;
+    }
     if (tail === 'time') { setEspTime(t); return; }
     if (tail === 'led') { setHeater(isOn(t)); return; }
     if (tail === '1' || tail === '2') handleSlave(+tail, t);
