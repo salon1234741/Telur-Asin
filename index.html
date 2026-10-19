@@ -165,7 +165,7 @@
 <!-- Card 1: Suhu & Kelembaban Ruang Simpan -->
 <article class="glass-card p-3 rounded-2xl border border-emerald-500/20 relative overflow-hidden group hover:border-emerald-500/40 transition-all" data-purpose="ambient-storage-card">
 <div class="flex items-center justify-between mb-1">
-<span class="text-[10px] font-medium tracking-wide uppercase text-slate-400">Ruang Simpan</span>
+<span class="text-[10px] font-medium tracking-wide uppercase text-slate-400">Suhu Ruang</span>
 <div class="w-6 h-6 rounded-lg bg-emerald-950/90 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
 <path d="M12 9a4 4 0 0 0-2 7.5"></path>
@@ -193,7 +193,7 @@
 <article class="glass-card p-3 rounded-2xl border border-amber-500/20 relative overflow-hidden group hover:border-amber-500/40 transition-all flex flex-col justify-between" data-purpose="heater-status-card">
 <div>
 <div class="flex items-center justify-between mb-1">
-<span class="text-[10px] font-medium tracking-wide uppercase text-slate-400">Heater Inkubasi</span>
+<span class="text-[10px] font-medium tracking-wide uppercase text-slate-400">Status Lampu</span>
 <div class="w-6 h-6 rounded-lg bg-amber-950/80 border border-amber-500/30 flex items-center justify-center text-amber-400">
 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
 <line x1="12" x2="12" y1="1" y2="3"></line>
@@ -256,7 +256,7 @@
 </div>
 <!-- Interactive-looking Toggle Switch Button with Neon Glow -->
 <button aria-pressed="true" class="relative inline-flex h-8 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none bg-gradient-to-r from-amber-500 to-orange-500 shadow-glow-amber" id="toggle-heater-btn" type="button">
-<span class="sr-only">Toggle Heater Inkubasi</span>
+<span class="sr-only">Toggle Status</span>
 <span class="pointer-events-none inline-block h-7 w-7 transform rounded-full bg-slate-900 shadow-lg ring-0 transition duration-300 ease-in-out translate-x-6 flex items-center justify-center" id="toggle-circle">
 <span class="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_6px_#f59e0b]"></span>
 </span>
@@ -274,7 +274,7 @@
 </div>
 </div>
 <div class="text-right">
-<span class="text-[10px] text-slate-400 block">Waktu ESP32 Real-Time</span>
+<span class="text-[10px] text-slate-400 block">Waktu</span>
 <span class="font-mono text-[11px] text-emerald-400 font-medium flex items-center justify-end space-x-1">
 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-ping"></span>
 <span id="live-footer-clock">--.--.--</span>
@@ -349,13 +349,13 @@
   function pill() {
     var k, t;
     if (!mqttOk) { k = 'bad'; t = 'Broker Terputus'; }
-    else if (espOnline) { k = 'ok'; t = 'ESP32 Terhubung'; }
-    else { k = 'wait'; t = espOnline === false ? 'ESP32 Offline' : 'Menunggu ESP32'; }
+    else if (espOnline) { k = 'ok'; t = 'Terhubung'; }
+    else { k = 'wait'; t = espOnline === false ? 'Offline' : 'Menunggu'; }
     $('esp-pill').className = 'flex items-center space-x-1.5 px-2.5 py-1 rounded-full border ' + PILL[k][0];
     $('esp-dot').className = 'relative inline-flex rounded-full h-2 w-2 ' + PILL[k][1];
     $('esp-text').className = 'text-[11px] font-semibold tracking-tight ' + PILL[k][2];
     $('esp-text').textContent = t;
-    $('sub-status').textContent = !mqttOk ? 'Mencoba menyambung ke broker' : espOnline ? 'Data masuk dari ESP32' : 'Menunggu data dari ESP32';
+    $('sub-status').textContent = !mqttOk ? 'Mencoba menyambung ke broker' : espOnline ? 'Data masuk' : 'Menunggu data';
   }
 
   var BADGE_BAD = ['bg-red-950/80', 'text-red-300', 'border-red-800/60'];
@@ -363,7 +363,7 @@
     var el = $('badge-s' + n);
     if (!el.dataset.orig) el.dataset.orig = el.className;
     el.className = ok ? el.dataset.orig : 'text-[10px] font-semibold px-2 py-0.5 rounded-full border ' + BADGE_BAD.join(' ');
-    el.textContent = ok ? 'Node Aktif' : 'No Respon';
+    el.textContent = ok ? 'Aktif' : 'No Respon';
   }
 
   /* ============ HEATER ============ */
@@ -468,7 +468,7 @@
     if (!st) { st = new Date().toDateString(); try { localStorage.setItem('cycleStart', st); } catch (e) {} }
     var day = espDay !== null ? espDay : Math.floor((new Date(new Date().toDateString()) - new Date(st)) / 864e5) + 1;
     $('day-badge').textContent = 'DAY - ' + day;
-    $('cycle-text').textContent = 'Siklus Pengasinan: Hari ke-' + day + ' / ' + totalDays;
+    $('cycle-text').textContent = 'Pengasinan Hari ke-' + day + ' / ' + totalDays;
     $('cycle-eta').textContent = day > totalDays ? 'Siklus selesai' : day === totalDays ? 'Estimasi Panen: hari ini' : 'Estimasi Panen: ' + (totalDays - day) + ' Hari Lagi';
   }
   $('day-badge').addEventListener('click', function () {
